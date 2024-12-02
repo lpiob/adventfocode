@@ -1,1 +1,4 @@
-To be published after the day1 challenge ends.
+Fetch input and then:
+```
+nodejs process.js < input
+```
