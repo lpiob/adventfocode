@@ -20,10 +20,12 @@ for (const update of updates.split('\n')) {
     console.log(update, check, mpn);
     sum_mpn+=mpn;
   } else { // incorrectly_ordered_update
+    sum_corrected_mpn+=mpn;
   }
 }
 
 console.log("Sum for MPN: ", sum_mpn);
+console.log("Sum for Corrected MPN: ", sum_corrected_mpn);
 
 function updateAdheresToPros(update, pros) {
   const pages=update.split(',');
@@ -33,8 +35,8 @@ function updateAdheresToPros(update, pros) {
     const [in1, in2] = [pages.indexOf(n1), pages.indexOf(n2)];
 
     if (in1>=0 && in2>=0 && in2<=in1) {
-      fixOrdering(update);
-      return [false, -1];
+      const mpn=fixOrdering(update);
+      return [false, mpn];
     }
 
   }
@@ -47,6 +49,9 @@ function fixOrdering(update) {
   console.log('before sort', pages);
   pages.sort(sortWithPros);
   console.log('after sort', pages);
+
+  const mpn=Number(pages[Math.floor(pages.length/2)]);
+  return mpn;
 }
 
 function sortWithPros(a,b) {
@@ -58,11 +63,9 @@ function sortWithPros(a,b) {
     n2=Number(n2);
 
     if (n1==a && n2==b) {
-      console.log("v1",a,b, a>b ? -1 : 1);
-      return a>b ? -1 : 1;
+      return -1;
     } else if (n1==b && n2==a) {
-      console.log("v2",a,b, a>b ? -1 : 1);
-      return a>b ? -1 : 1;
+      return 1;
     } else {
       //console.log("v3");
       //return 0;
