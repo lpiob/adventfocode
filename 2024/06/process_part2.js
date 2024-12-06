@@ -34,10 +34,11 @@ for (const line of input.split('\n')) {
   row+=1;
 }
 
-maze_obstacles[6][3]="#";
-console.log(maze_obstacles);
 
 console.log("Guard is at", y, x);
+
+let gsy=y; // guard start y,x
+let gsx=x;
 
 let maze_width=maze_obstacles[0].length;
 let maze_height=maze_obstacles.length;
@@ -69,11 +70,11 @@ function makeamove(){
   if (ny<0 || ny>=maze_height || nx<0 || nx>=maze_width) {
     console.log("Guard will leave the maze");
     console.log("He has visited ", countdistinctvisitedpositions(maze_visited), "distinct cells");
-    return -1; // out of bounds
+    throw new Error("oob");
   } else if (maze_visited_dir[guard_direction][ny][nx]>0) {
     console.log("Guard has revisited his previous position");
     console.log("He is stuck in a time loop");
-    return 2;
+    throw new Error("timeloop");
   } else if (maze_obstacles[ny][nx]=="#") {
     console.log("Obstacle ahead. NOT making a move, but turning right");
     guard_direction=(guard_direction+2)%8
@@ -90,5 +91,18 @@ function makeamove(){
   }
 }
 
-
+// 1st pass - validate the maze is passable
+// no error handling on purpose
 makeamove();
+
+// 2nd pass - introduce an obstacle and check if it cause a timeloop
+maze_obstacles[6][3]="#";
+// reset guard position
+x=gsx
+y=gsy
+
+try {
+  makeamove();
+} catch (error) {
+  console.log(error.message);
+}
