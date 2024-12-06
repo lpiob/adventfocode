@@ -29,11 +29,13 @@ for (const line of input.split('\n')) {
     maze_obstacles[row][column] = cell
     maze_visited[row][column] = cell=="^" ? 1 : 0;
     maze_visited_dir[guard_direction][row][column] = cell=="^" ? 1 : 0;
+    for (const dir of [0,2,4,6])
+      maze_visited_dir[dir][row][column]=0;
+      
     column+=1;
   }
   row+=1;
 }
-
 
 console.log("Guard is at", y, x);
 
@@ -63,23 +65,44 @@ function calculatenewposition(y,x, guard_direction) {
   return [y,x]
 }
 
-function makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_dir){
+function makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_dir, oy=-2, ox=-2){
   //console.log("We are at ", y, x, " direction: ", guard_direction);
   let [ny,nx]=calculatenewposition(y,x,guard_direction);
   //console.log("New position would be ", ny, nx);
+  
   if (ny<0 || ny>=maze_height || nx<0 || nx>=maze_width) {
     //console.log("Guard will leave the maze");
     //console.log("He has visited ", countdistinctvisitedpositions(maze_visited), "distinct cells");
     throw new Error("oob");
-  } else if (maze_visited_dir[guard_direction][ny][nx]>0) {
-    console.log("Guard has revisited his previous position");
+  }
+
+  if (!maze_visited_dir[guard_direction]) {
+    console.log("lost in place1");
+  }
+  if (!maze_visited_dir[guard_direction][ny]) {
+    console.log("lost in place2");
+  }
+
+  
+
+  if (maze_visited_dir[guard_direction][ny][nx]>0) {
+    console.log("Guard will revisit his previous position");
     console.log("He is stuck in a time loop");
     throw new Error("timeloop");
-  } else if (maze_obstacles[ny][nx]=="#") {
+  } else if (maze_obstacles[ny][nx]=="#" || ( ny==oy && nx==ox) ) {
     //console.log("Obstacle ahead. NOT making a move, but turning right");
-    guard_direction=(guard_direction+2)%8
-    maze_visited_dir[guard_direction][y][x]+=1;   
-    return makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_dir);
+
+/*
+    if (maze_visited[guard_direction][ny][nx]>8) {
+      console.log("Guard is stuck in 1x1.");
+      throw new Error("timeloop");
+    };
+*/
+
+    guard_direction=Number((guard_direction+2)%8);
+    maze_visited_dir[guard_direction][y][x]=1;   
+    //console.log('before', maze_visited_dir);
+    return makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_dir, oy, ox);
   } else { // no obstacles, let's just make another
     //console.log("Deciding to make another move");
     y=ny
@@ -87,10 +110,10 @@ function makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_
     maze_visited[y][x]+=1;
     maze_visited_dir[guard_direction][y][x]+=1;
 
-    return makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_dir);
+    return makeamove(y,x,guard_direction,maze_obstacles,maze_visited,maze_visited_dir, oy, ox);
   }
 }
-
+/*
 console.log("1st pass");
 // 1st pass - validate the maze is passable
 try {
@@ -101,22 +124,31 @@ try {
 } catch (error) {
   console.log(error.message);
 }
+*/
 
 // brute force approach
 let timeloops=0;
 for (let ny=0; ny<maze_height; ny++) {
   for (let nx=0; nx<maze_width; nx++) {
-    if ((nx!=gsx && ny!=gsy) && maze_obstacles[ny][nx]!='#') {
-      let new_maze_obstacles=JSON.parse(JSON.stringify(maze_obstacles));
-      new_maze_obstacles[ny][nx]='#';
+    if (!(nx==gsx && ny==gsy) && maze_obstacles[ny][nx]!='#') {
+      //tconsole.log("Running a sim with new obstacle at ", ny, nx);
 
-      //console.log("Running a sim with new obstacle at ", ny, nx);
+      // cleanup
+      let maze_visited=[];
+      let maze_visited_dir=[]; // cells visited WHILE facing a direction
+      for (const dir of [0,2,4,6]) maze_visited_dir[dir]=[];
+      for (let y=0; y<maze_height; y++) {
+        maze_visited[y]=[];
+        for (const dir of [0,2,4,6]) maze_visited_dir[dir][y]=[];
+        for (let x=0; x<maze_width; x++) {
+          maze_visited[y][x]=0;
+          for (const dir of [0,2,4,6]) maze_visited_dir[dir][y][x]=0;
+        }
+      }
 
       try {
         // passing a deep copy
-        makeamove(y,x,guard_direction,new_maze_obstacles,
-          JSON.parse(JSON.stringify(maze_visited)),
-          JSON.parse(JSON.stringify(maze_visited_dir)));
+        makeamove(y,x,guard_direction,maze_obstacles, maze_visited, maze_visited_dir, ny, nx);
       } catch (error) {
         if (error.message=='timeloop') { 
           timeloops++;
