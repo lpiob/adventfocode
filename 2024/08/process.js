@@ -41,7 +41,7 @@ for (const freq in antennas) {
         const ny=a[0]+dy;
         const nx=a[1]+dx;
 
-        if (ny>=0 && ny<map_height && nx>=0 && nx<=map_width) {
+        if (ny>=0 && ny<map_height && nx>=0 && nx<map_width) {
         
           console.log("Antinode for ",a,"and",b ," at ", ny, "x", nx)
 
