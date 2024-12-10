@@ -46,12 +46,17 @@ function traverse(lastcell, y,x) {
   let continuations=[];
   const up=traverse(cell, y-1, x);
   if (up) continuations.push(up);
+
   const down=traverse(cell, y+1, x);
   if (down) continuations.push(down);
+
   const left=traverse(cell, y, x-1);
   if (left) continuations.push(left);
+
   const right=traverse(cell, y, x+1);
   if (right) continuations.push(right);
+  // we could get rid of those ifs if we'd filter for nulls
+
   continuations=[...new Set(continuations.flat())];
   
   return continuations;
