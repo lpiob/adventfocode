@@ -90,11 +90,11 @@ function move(cy,cx, dir, map) {
     };
   } else if ((dir=='^' || dir=='v')) { // push!
     // let's first check the current vertical line on a copy
-    let [ret, my, mx]=move(ny,nx, dir, structuredClone(map));
+    let [ret, my, mx]=move(ny,nx, dir, JSON.parse(JSON.stringify(map)));
     if (ret) {
       // let's now check a row to the side
       let ss = map[ny][nx]==']' ? -1 : 1;
-      let [ret2, my2, mx2] = move(ny, nx+ss, dir, structuredClone(map));
+      let [ret2, my2, mx2] = move(ny, nx+ss, dir, JSON.parse(JSON.stringify(map)));
       if (ret2) {
         // let's make the move on real map
         move(ny,nx, dir, map);
