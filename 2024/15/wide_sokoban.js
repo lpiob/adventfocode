@@ -32,22 +32,23 @@ for (const op of ops) {
     px=nx
   }
   //console.log(op, ret);
-  drawMap(map);
+  //drawMap(map);
   i++;
   //if (i>18) process.exit();
+  console.log('performed op',i,'/',ops.length);
 }
 
 // step1 result
-let s1sum=0;
+let s2sum=0;
 for (let y=0; y<height; y++) {
   for (let x=0; x<width; x++) {
     if (map[y][x]=='[') {
-      s1sum+=100*y+x;
+      s2sum+=100*y+x;
     };
   };
 };
 
-console.log("s1sum", s1sum);
+console.log("s2sum", s2sum);
 
 function drawMap(map) {
   let y=0;
@@ -60,8 +61,6 @@ function drawMap(map) {
 }
 
 function move(cy,cx, dir, map) {
-  console.log('move', cy, cx, dir);
-  console.log('map at this location:', map[cy][cx]);
   const movevectors={
     //       y,  x
     '<': [  0, -1 ],
@@ -93,13 +92,10 @@ function move(cy,cx, dir, map) {
     // let's first check the current vertical line on a copy
     let [ret, my, mx]=move(ny,nx, dir, structuredClone(map));
     if (ret) {
-      console.log('col',nx,'can move');
       // let's now check a row to the side
       let ss = map[ny][nx]==']' ? -1 : 1;
-      console.log('checking if col',nx+ss,'can move at row', nx);
       let [ret2, my2, mx2] = move(ny, nx+ss, dir, structuredClone(map));
       if (ret2) {
-        console.log('col',nx+ss,'can move');
         // let's make the move on real map
         move(ny,nx, dir, map);
         move(ny,nx+ss, dir, map);
