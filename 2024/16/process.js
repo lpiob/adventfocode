@@ -43,6 +43,7 @@ console.log(Sp, Ep);
 
 visited=new Set();
 let paths=go(map, Sp, 'S', visited);
+console.log(paths);
 
 let i=0;
 for (const path of paths) {
@@ -82,8 +83,7 @@ function go(map, Sp, path='', visited) {
   if (lr<0) lr=3; // hardcoded
   [ny,nx]=[Sp[0]+directions[lr][0], Sp[1]+directions[lr][1]  ];
   if (!visited.has(`${ny}x${nx}`) && map[ny][nx]=='.') {
-    console.log(path+'Rf','Were moving from',Sp,'to',ny,nx,lr);
-    paths=[...paths, ...go(map, [ny, nx, lr], path+'Rf', new Set(visited))];
+    paths=[...paths, ...go(map, [ny, nx, lr], path+'Cf', new Set(visited))];
   }
   // rotate
   lr--;
@@ -92,7 +92,7 @@ function go(map, Sp, path='', visited) {
   if (lr<0) lr=3; // hardcoded
   [ny,nx]=[Sp[0]+directions[lr][0], Sp[1]+directions[lr][1]  ];
   if (!visited.has(`${ny}x${nx}`) && map[ny][nx]=='.')
-    paths=[...paths, ...go(map, [ny, nx, lr], path+'RRRf', new Set(visited))];
+    paths=[...paths, ...go(map, [ny, nx, lr], path+'Rf', new Set(visited))];
 
   //@TODO situation when rotating would result in meeting E
   
