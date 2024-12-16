@@ -53,8 +53,6 @@ console.log(Sp, Ep);
 
 let ret=pqsolve();
 console.log(ret[0], ret[1]);
-drawMap(map,ret[0], ret[2]);
-
 
 function calculatePathScore(path) {
   if (scorecache[path]) return scorecache[path];
@@ -97,13 +95,22 @@ function pqsolve() {
   const bestCosts = new Map();
   bestCosts.set(`${Sp[0]},${Sp[1]},${Sp[2]}`, 0);
 
+  let bestEndCost = Infinity;
+  let bestPaths = [];
+
   while (pqValues.length !== 0) {
     const {element: [cy, cx, cdir, ccost, cpath]} = pqDequeue();
 
+    if (ccost > bestEndCost) continue;    
+
     if (cy == Ep[0] && cx == Ep[1]) {
-      console.log("E with cost:", ccost);
-      
-      return [ccost, cpath, bestCosts];
+      if (ccost < bestEndCost) {
+        bestEndCost = ccost;
+        bestPaths = [cpath];
+      } else if (ccost === bestEndCost) {
+        bestPaths.push(cpath);
+        console.log("E with cost:", ccost);
+      }      
     }
 
     // forward
@@ -127,18 +134,18 @@ function pqsolve() {
         go(ny, nx, cwDir, ccost + movePrices.R + movePrices.f, cpath + 'Rf', bestCosts);
     }
   }
-
-
+  console.log('e');
+  return [bestEndCost, bestPaths, bestCosts];
 }
 
 function go(ny, nx, ndir, ncost, npath, bestCosts) {
-   const stateKey = `${ny},${nx},${ndir}`;
-    const currentBest = bestCosts.get(stateKey) ?? Infinity;
+  const stateKey = `${ny},${nx},${ndir}`;
+  const currentBest = bestCosts.get(stateKey) ?? Infinity;
     
-    if (ncost < currentBest) {
-        bestCosts.set(stateKey, ncost);
-        pqEnqueue([ny, nx, ndir, ncost, npath], ncost);
-    }  
+  if (ncost <= currentBest) {
+    bestCosts.set(stateKey, ncost);
+    pqEnqueue([ny, nx, ndir, ncost, npath], ncost);
+  }  
 }
 
 function canWeGoTo(map,y,x) {
