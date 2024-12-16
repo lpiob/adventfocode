@@ -54,6 +54,42 @@ console.log(Sp, Ep);
 let ret=pqsolve();
 console.log(ret[0], ret[1]);
 
+let bestspots=new Map();
+for (let path of ret[1]) {
+  let spots=calculateBestSpots(path);
+  bestspots=[...spots, ...bestspots];
+};
+
+// console.log(bestspots.length);
+let sum=0;
+for (let i of bestspots) {
+  console.log(i);
+  sum++;
+};
+drawMap(map, bestspots);
+
+
+function calculateBestSpots(path){
+  let visited=new Map();
+  let Pp=structuredClone(Sp);
+
+  for (let c of path) {
+    visited.set(`${Pp[0]}x${Pp[1]}`,1);
+    if (c=='C') {
+      Pp[2]--;
+      if (Pp[2]<0) Pp[2]=3;
+    } else if (c=='R') {
+      Pp[2]++;
+      if (Pp[2]>3) Pp[2]=0;
+    } else if (c=='f') {
+      Pp[0] += directions[Pp[2]][0]
+      Pp[1] += directions[Pp[2]][1]
+    };
+  };
+
+  return visited;
+};
+
 function calculatePathScore(path) {
   if (scorecache[path]) return scorecache[path];
   let score=0;
@@ -63,17 +99,14 @@ function calculatePathScore(path) {
   return score;
 }
 
-function drawMap(map,score,bc) {
-  if (score && bc) {
-    for (let el of [...bc.keys()]) {
-      if (bc.get(el)<=score) {
-        let n=el.split(',').map(Number);
-        n.pop();
-//        console.log('X',n);
-      }; 
+function drawMap(map,bc) {
+  let map2=structuredClone(map);
+  if (bc) {
+    for (let el of bc) {
+      let n=el[0].split('x').map(Number);
+      map2[n[0]][n[1]]="O";
     };
   }
-  let map2=structuredClone(map);
 /*
   if (bc) {
     for (let el of bc.keys()) {
