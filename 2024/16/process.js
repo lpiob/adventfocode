@@ -25,6 +25,16 @@ const movePrices={
   "R": 1000 // clockwise rotate
 }
 
+const pqValues = [];
+
+function pqEnqueue(element, priority) {
+    pqValues.push({element, priority});
+    pqValues.sort((a, b) => a.priority - b.priority);
+}
+
+function pqDequeue() {
+    return pqValues.shift();
+}
 
 let y=0;
 for (const line of input.split("\n")) {
@@ -34,9 +44,6 @@ for (const line of input.split("\n")) {
     if (line.indexOf('E')>=0) { Ep[0]=y; Ep[1]=line.indexOf('E'); };
     y++;
   }
-  else if (line.match(/.+/)) {
-    ops=[...ops, ...line.split("")]
-  }
 }
 
 Sp[2]=1; // facing east
@@ -44,16 +51,9 @@ Sp[2]=1; // facing east
 drawMap(map);
 console.log(Sp, Ep);
 
-visited=new Set();
-let paths=go(map, Sp, 'S', visited);
-
-let i=0;
-for (const path of paths) {
-  i++;
-  let score=calculatePathScore(path);
-  if (score==lowest_known_score)
-  console.log('path',i,'score',score,path);
-}
+let ret=pqsolve();
+console.log(ret[0], ret[1]);
+drawMap(map,ret[0], ret[2]);
 
 
 function calculatePathScore(path) {
@@ -65,60 +65,80 @@ function calculatePathScore(path) {
   return score;
 }
 
-function drawMap(map) {
-  for (const row of map) {
+function drawMap(map,score,bc) {
+  if (score && bc) {
+    for (let el of [...bc.keys()]) {
+      if (bc.get(el)<=score) {
+        let n=el.split(',').map(Number);
+        n.pop();
+//        console.log('X',n);
+      }; 
+    };
+  }
+  let map2=structuredClone(map);
+/*
+  if (bc) {
+    for (let el of bc.keys()) {
+      console.log('key', bc);
+    };
+  };
+*/
+  for (const row of map2) {
     const line=row.join("");
     console.log(line);
   }
 }
 
+function pqsolve() {
+  // State: [y, x, direction, cost, path]
+  const startState = [...Sp, 0, 'S'];
+  pqEnqueue(startState, 0);
 
-function go(map, Sp, path='', visited) {
-  visited.add(`${Sp[0]}x${Sp[1]}`);
-  let current_score=calculatePathScore(path);
+  const bestCosts = new Map();
+  bestCosts.set(`${Sp[0]},${Sp[1]},${Sp[2]}`, 0);
 
-  let paths=[];
-  //console.log('We are at',Sp[0],Sp[1], 'and we are facing', Sp[2]);
-  // where can we go?
-  let lr=Sp[2]; // current rotation
+  while (pqValues.length !== 0) {
+    const {element: [cy, cx, cdir, ccost, cpath]} = pqDequeue();
 
-  // forward
-  let [ny,nx]=[Sp[0]+directions[lr][0], Sp[1]+directions[lr][1]  ];
-  if (!visited.has(`${ny}x${nx}`) && map[ny][nx]=='.')
-    paths=[...paths, ...go(map, [ny, nx, Sp[2]], path+'f', new Set(visited))];
-  else if (map[ny][nx]=='E') {// going forward would end in finish!
-    paths.push(path+'fE');
-    console.log(path+'fE');
-    let score=calculatePathScore(path+'fE');
-    if (!lowest_known_score || score<lowest_known_score) {
-      lowest_known_score=score;
-      console.log("New lowest known score", lowest_known_score);
-    };
-    return paths;
-  }
-
-  if (!lowest_known_score || current_score+1000<lowest_known_score) {
-    // rotate counterclockwise
-    lr--;
-    if (lr<0) lr=3; // hardcoded
-    [ny,nx]=[Sp[0]+directions[lr][0], Sp[1]+directions[lr][1]  ];
-    if (!visited.has(`${ny}x${nx}`) && map[ny][nx]=='.') {
-      paths=[...paths, ...go(map, [ny, nx, lr], path+'Cf', new Set(visited))];
+    if (cy == Ep[0] && cx == Ep[1]) {
+      console.log("E with cost:", ccost);
+      
+      return [ccost, cpath, bestCosts];
     }
 
-    // rotate clockwise
-    lr--;
-    if (lr<0) lr=3; // hardcoded
-    lr--;
-    if (lr<0) lr=3; // hardcoded
-    [ny,nx]=[Sp[0]+directions[lr][0], Sp[1]+directions[lr][1]  ];
-    if (!visited.has(`${ny}x${nx}`) && map[ny][nx]=='.')
-      paths=[...paths, ...go(map, [ny, nx, lr], path+'Rf', new Set(visited))];
-  };
+    // forward
+    let [ny, nx] = [cy + directions[cdir][0], cx + directions[cdir][1]];
+    if (map[ny][nx] == '.' || map[ny][nx] == 'E') {
+      go(ny, nx, cdir, ccost + movePrices.f, cpath + 'f', bestCosts);
+    }
 
-  //@TODO situation when rotating would result in meeting E
-  //paths.push(path); // @todo limit to those ending on E
-  return paths;
+    // rotate counterclockwise
+    let ccwDir = cdir-1;
+    if (ccwDir<0) ccwDir=3; // hardcoded
+    [ny, nx] = [cy + directions[ccwDir][0], cx + directions[ccwDir][1]];
+    if (map[ny][nx] == '.' || map[ny]?.[nx] == 'E') {
+        go(ny, nx, ccwDir, ccost + movePrices.C + movePrices.f, cpath + 'Cf', bestCosts);
+    }
+
+    // clockwise
+    let cwDir = (cdir + 1) % 4;
+    [ny, nx] = [cy + directions[cwDir][0], cx + directions[cwDir][1]];
+    if (map[ny][nx] == '.' || map[ny][nx] == 'E') {
+        go(ny, nx, cwDir, ccost + movePrices.R + movePrices.f, cpath + 'Rf', bestCosts);
+    }
+  }
+
+
+}
+
+function go(ny, nx, ndir, ncost, npath, bestCosts) {
+   const stateKey = `${ny},${nx},${ndir}`;
+    const currentBest = bestCosts.get(stateKey) ?? Infinity;
+    
+    if (ncost < currentBest) {
+        bestCosts.set(stateKey, ncost);
+        pqEnqueue([ny, nx, ndir, ncost, npath], ncost);
+    }  
 }
 
 function canWeGoTo(map,y,x) {
@@ -128,3 +148,4 @@ function canWeGoTo(map,y,x) {
   if (map[y][x]=='E') return true;
   return false;
 }
+
