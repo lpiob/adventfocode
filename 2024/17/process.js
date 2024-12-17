@@ -16,19 +16,17 @@ const instructions=[
 let outputs=[];
 
 for (let cursor=0; cursor<program.length;) {
-  console.log("Reading opcode at", cursor);
+  //console.log("Reading opcode at", cursor);
   console.log(` ${instructions[program[cursor]]} ${program[cursor+1]} [A ${regA} B ${regB} C ${regC}]`);
 
   if (instructions[program[cursor]]=='adv') {               // 0
-    let result=Math.floor(regA / ( 2^combo(program[cursor+1]) ))
-    regA=result;
+    regA = regA >> combo(program[cursor+1])
     cursor+=2;
   } else if (instructions[program[cursor]]=='bxl') {        // 1
-    // @TODO
-    console.log('UNKNOWN INSTRUCTION');
+    regB = regB ^ program[cursor+1];
     cursor+=2;
   } else if (instructions[program[cursor]]=='bst') {        // 2
-    console.log('UNKNOWN INSTRUCTION');
+    regB = combo(program[cursor+1]) % 8;
     cursor+=2;
   } else if (instructions[program[cursor]]=='jnz') {        // 3
     if (regA>0) {
@@ -37,25 +35,30 @@ for (let cursor=0; cursor<program.length;) {
       cursor+=2;
     };
   } else if (instructions[program[cursor]]=='bxc') {        // 4
-    console.log('UNKNOWN INSTRUCTION');
+    regB = regB ^ regC
     cursor+=2;
   } else if (instructions[program[cursor]]=='out') {        // 5
-    let val=combo(program[cursor+1]);
+    let val=combo(program[cursor+1])%8;
     outputs.push(val);
     //console.log(val);
     cursor+=2;
   } else if (instructions[program[cursor]]=='bdv') {
-    console.log('UNKNOWN INSTRUCTION');
+    throw new error('UNKNOWN INSTRUCTION');
     cursor+=2;
   } else if (instructions[program[cursor]]=='cdv') {
-    console.log('UNKNOWN INSTRUCTION');
+    /* The cdv instruction (opcode 7) works exactly like the adv 
+     * instruction except that the result is stored in the C 
+     * register. (The numerator is still read from the A register.)
+     */
+    regC = regA >> combo(program[cursor+1])
     cursor+=2;
   } else {
     throw new error('undefined instruction encountered');
   };
 };
+console.log(`Program HALTed with [A ${regA} B ${regB} C ${regC}]`);
 
-console.log('program output', outputs.join(','));
+console.log('Program output', outputs.join(','));
 
 function combo(operand) {
   // Combo operands 0 through 3 represent literal values 0 through 3.
