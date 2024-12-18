@@ -4,10 +4,13 @@ let regA=Number(input.match(/^Register A: (\d+)/)[1]);  // should those be in te
 let regB=Number(input.match(/^Register B: (\d+)/m)[1]);
 let regC=Number(input.match(/^Register C: (\d+)/m)[1]);
 
+if (process.argv[2]) {
+  regA=Number(process.argv[2]);
+}
 const program=input.match(/^Program: ([\d,]+)/m)[1].split(",").map(Number);
 
-console.log(regA, regB, regC);
-console.log(program);
+//console.log(regA, regB, regC);
+//console.log(program);
 
 const instructions=[
   'adv', 'bxl', 'bst', 'jnz', 'bxc', 'out', 'bdv', 'cdv'
@@ -17,7 +20,7 @@ let outputs=[];
 
 for (let cursor=0; cursor<program.length;) {
   //console.log("Reading opcode at", cursor);
-  console.log(` ${instructions[program[cursor]]} ${program[cursor+1]} [A ${regA} B ${regB} C ${regC}]`);
+  //console.log(` ${instructions[program[cursor]]} ${program[cursor+1]} [A ${regA} B ${regB} C ${regC}]`);
 
   if (instructions[program[cursor]]=='adv') {               // 0
     regA = regA >> combo(program[cursor+1])
@@ -56,9 +59,9 @@ for (let cursor=0; cursor<program.length;) {
     throw new error('undefined instruction encountered');
   };
 };
-console.log(`Program HALTed with [A ${regA} B ${regB} C ${regC}]`);
+//console.log(`Program HALTed with [A ${regA} B ${regB} C ${regC}]`);
 
-console.log('Program output', outputs.join(','));
+console.log(outputs.join(','));
 
 function combo(operand) {
   // Combo operands 0 through 3 represent literal values 0 through 3.

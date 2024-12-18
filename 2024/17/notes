@@ -1,0 +1,105 @@
+these are raw notes for part2
+which I solved with a bunch of equations, bash scripts and gnu parallel invocations
+there was no elegant code, nor a solution that would work other inputs
+
+( x >> ( ( x %8 ) ^ 5 ) ) % 8 == 2
+
+for ((x=1; x<=10000; x++)); do
+    # Calculate (x >> ((x % 8) ^ 5)) % 8
+    if (($(( (x >> ((x % 8) ^ 5)) % 8 )) == 2)); then
+        echo $x
+        nodejs process.js < input | grep "2,4,1,5,7,5,1,6,4,1,5,5,0,3,3,0"
+    fi
+done
+
+ bst 4 [A 7573720 B XX C 946715]    ( A->B)
+  regB = A % 8
+ bxl 5 [A 7573720 B 0 C 946715]     ( B->B )
+  regB = regB ^ 5 = ( A % 8 ) ^ 5
+ cdv 5 [A 7573720 B 5 C 946715]     ( A,B->C )
+  regC = regA >> regB
+ bxl 6 [A 7573720 B 5 C 236678]     ( B->B)
+  regB = regB ^ 6 = ( ( A % 8 ) ^ 5 ) ^ 6
+ bxc 1 [A 7573720 B 3 C 236678]     ( B,C->B)
+  regB = regB ^ regC 
+       = ( ( ( A % 8 ) ^ 5 ) ^ 6 ) ^ regC =
+       = ( ( ( A % 8 ) ^ 5 ) ^ 6 ) ^ ( A >> ( ( A % 8 ) ^ 5 ) ) 
+  
+ out 5 [A 7573720 B 236677 C 236678]
+
+
+ ( ( ( ( A % 8 ) ^ 5 ) ^ 6 ) ^ ( A >> ( ( A % 8 ) ^ 5 ) ) ) % 8 == 4 
+ =>
+ ( ( ( ( (x>>3) % 8 ) ^ 5 ) ^ 6 ) ^ ( (x>>3) >> ( ( (x>>3) % 8 ) ^ 5 ) ) ) % 8 == 4
+
+
+
+{
+
+ ( x >> ( ( x %8 ) ^ 5 ) ) % 8 == 2
+ ( ( ( ( (x>>3) % 8 ) ^ 5 ) ^ 6 ) ^ ( (x>>3) >> ( ( (x>>3) % 8 ) ^ 5 ) ) ) % 8 == 4
+ ( ( ( ( (x>>3>>3) % 8 ) ^ 5 ) ^ 6 ) ^ ( (x>>3>>3) >> ( ( (x>>3>>3) % 8 ) ^ 5 ) ) ) % 8 == 1
+ ( ( ( ( (x>>3>>3>>3) % 8 ) ^ 5 ) ^ 6 ) ^ ( (x>>3>>3>>3) >> ( ( (x>>3>>3>>3) % 8 ) ^ 5 ) ) ) % 8 == 5
+
+ x>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3 == 0
+ x>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3 > 0
+
+
+ ( (regB*5 ^ 6 ) ^ regC*236678 ) % 2
+ ( ( (( regA )^5) ^ 6 ) ^ ( regA >> 5 ) ) % 2
+
+
+---
+
+#!/bin/bash
+
+for ((x=1; x<=10000; x++)); do
+    # Equation 1
+    eq1=$((x >> ((x % 8) ^ 5)))
+    eq1=$((eq1 % 8))
+    
+    # Equation 2
+    y=$((x >> 3))
+    shift_amount=$(((y % 8) ^ 5))
+    xor_part=$((((y % 8) ^ 5) ^ 6))
+    shifted=$((y >> shift_amount))
+    eq2=$((xor_part ^ shifted))
+    eq2=$((eq2 % 8))
+    
+    if ((eq1 == 2 && eq2 == 4)); then
+        echo $x
+    fi
+done >> candidates
+
+
+for I in $(cat candidates); do echo $I; nodejs process.js $I < input; done >> output
+
+
+x>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3 == 0
+x>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3>>3 > 0
+
+
+def test_value(x):
+    # First equation
+    if ((x >> ((x % 8) ^ 5)) % 8) != 2:
+        return False
+        
+    # Second equation
+    x2 = x >> 3
+    if ((((((x2 % 8) ^ 5) ^ 6) ^ (x2 >> ((x2 % 8) ^ 5)))) % 8) != 4:
+        return False
+        
+    # Third equation
+    x3 = x >> 6
+    if ((((((x3 % 8) ^ 5) ^ 6) ^ (x3 >> ((x3 % 8) ^ 5)))) % 8) != 1:
+        return False
+        
+    # Fourth equation
+    x4 = x >> 9
+    if ((((((x4 % 8) ^ 5) ^ 6) ^ (x4 >> ((x4 % 8) ^ 5)))) % 8) != 5:
+        return False
+        
+    return True
+
+
+
