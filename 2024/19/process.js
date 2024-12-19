@@ -1,7 +1,6 @@
 const input = require('fs').readFileSync(0).toString().trim(); 
 
 let pq = [];
-let pqVisited = new Set();
 
 const lines = input.split("\n");
 let patterns=lines.shift().split(", ")
@@ -10,6 +9,7 @@ let desired_designs=lines;
 
 var scorecache={};
 let lowest_known_score;
+var solveCache = new Map();
 
 
 let sum=0;
@@ -42,38 +42,37 @@ function buildPatternIndex(design, patterns) {
 
 function pqsolve(design, patterns) {
   pq=[];
-  pqVisited.clear();
   // State: [current_pattern, current_comma_path]
   const startState = ['', ''];
   pq.push(startState);
-  pqVisited.add('');
-  let bestPaths = 0;
 
-  let patternIndex=buildPatternIndex(design, patterns);
-  console.log(patternIndex);
+  let patternIndex = buildPatternIndex(design, patterns);
 
-  while (pq.length !== 0) {
-    const [cpath, ccpath] = pq.pop();
-
-    if (cpath==design) {
-      bestPaths++;
-      continue;
+  function solveSubproblem(cpath) {
+    const cacheKey = `${design}:${cpath}`;
+    //console.log(cacheKey);
+    
+    if (solveCache.has(cacheKey)) {
+      return solveCache.get(cacheKey);
     }
 
-    if (cpath.length>design.length) {
-      continue;
-    }
-
-    for (const p of patternIndex[cpath.length]) {
-      const ncpath=ccpath+','+p;
-      const npath=cpath+p;
-      
-      if (npath.length>design.length) continue;
-      if (design.indexOf(npath)===0) { 
-        pq.push([npath, ncpath]);
+    let paths = 0;
+    if (cpath === design) {
+      paths = 1;
+    } else if (cpath.length > design.length) {
+      paths = 0;
+    } else {
+      for (const p of patternIndex[cpath.length] || []) {
+        const npath = cpath + p;
+        if (npath.length <= design.length && design.indexOf(npath) === 0) {
+          paths += solveSubproblem(npath);
+        }
       }
-    };
-  }
-  return bestPaths;
-}
+    }
 
+    solveCache.set(cacheKey, paths);
+    return paths;
+  }
+
+  return solveSubproblem('');
+}
