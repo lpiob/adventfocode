@@ -16,9 +16,17 @@ let sum=0;
 let sum2=0;
 for (const design of desired_designs) 
 {
+  const custom_patterns=structuredClone(patterns);
 
-  console.log('searching for', design);
-  let ret=pqsolve(design, patterns);
+  for (let i=custom_patterns.length-1;i>=0;i--) {
+    let p=custom_patterns[i]
+    if (!design.includes(p)) {
+      custom_patterns.splice(i,1);
+    };
+  };
+
+  console.log('searching for', design, "from",patterns.length,'=>',custom_patterns.length, "combinations");
+  let ret=pqsolve(design, custom_patterns);
 
   console.log(design, ret);
   if (ret.length>0) sum++;
@@ -40,7 +48,7 @@ function pqsolve(design, patterns) {
 
   while (pqValues.length !== 0) {
     const {element: [cost, cpath, ccpath]} = pqDequeue();
-    console.log('trying',ccpath);
+    //console.log('trying',ccpath);
 
     if (cpath==design) {
       bestPaths.push(ccpath);
