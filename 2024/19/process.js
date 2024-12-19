@@ -13,32 +13,38 @@ let lowest_known_score;
 
 
 let sum=0;
+let sum2=0;
 for (const design of desired_designs) 
 {
 
   console.log('searching for', design);
   let ret=pqsolve(design, patterns);
+
   console.log(design, ret);
-  if (ret) sum++;
+  if (ret.length>0) sum++;
+  sum2+=ret.length;
 }
 
 console.log('possible designs:', sum);
+console.log('possible step2 designs:', sum2);
 
 function pqsolve(design, patterns) {
   pqValues=[];
   pqVisited.clear();
-  // State: [cost, current_pattern]
-  const startState = [0, ''];
+  // State: [cost, current_pattern, current_comma_path]
+  const startState = [0, '', ''];
   pqEnqueue(startState, 0);
   pqVisited.add('');
+  let bestPaths = [];
+
 
   while (pqValues.length !== 0) {
-    const {element: [cost, cpath]} = pqDequeue();
-    //console.log('list', pqValues);
-    //console.log('trying',cpath);
+    const {element: [cost, cpath, ccpath]} = pqDequeue();
+    console.log('trying',ccpath);
 
     if (cpath==design) {
-      return true;
+      bestPaths.push(ccpath);
+      continue;
     }
 
     if (cpath.length>design.length) {
@@ -46,17 +52,19 @@ function pqsolve(design, patterns) {
     }
 
     for (const p of patterns) {
+      //const ncpath=ccpath+(ccpath.length>0?',':'')+p;
+      const ncpath=ccpath+','+p;
       const npath=cpath+p;
-      if (pqVisited.has(npath)) continue;
+      if (pqVisited.has(ncpath)) continue;
       if (npath.length>design.length) continue;
       if (design.startsWith(npath)) {
-        pqEnqueue([cost+1, npath], cost+1);
-        pqVisited.add(npath);
+        pqEnqueue([cost+1, npath, ncpath], cost+1);
+        pqVisited.add(ncpath);
       }
     };
 
   }
-  return false;
+  return bestPaths;
 }
 
 function pqEnqueue(element, priority) {
