@@ -1,26 +1,6 @@
 const input = require('fs').readFileSync(0).toString().trim(); 
 
-class PriorityQueue {
-  constructor() {
-    this.values = [];
-  }
-
-  enqueue(element, priority) {
-    this.values.push({ element, priority });
-    //this._bubbleUp();
-  }
-
-  dequeue() {
-    if (this.values.length === 0) return null;
-    return this.values.pop();
-  }
-
-  get length() {
-    return this.values.length;
-  }
-}
-
-let pq = new PriorityQueue();
+let pq = [];
 let pqVisited = new Set();
 
 const lines = input.split("\n");
@@ -71,19 +51,19 @@ function buildPatternIndex(design, patterns) {
 }
 
 function pqsolve(design, patterns) {
-  pq=new PriorityQueue();
+  pq=[];
   pqVisited.clear();
   // State: [current_pattern, current_comma_path]
   const startState = ['', ''];
-  pq.enqueue(startState, 0);
+  pq.push(startState);
   pqVisited.add('');
   let bestPaths = 0;
 
   let patternIndex=buildPatternIndex(design, patterns);
-  console.log(patternIndex);
+  //console.log(patternIndex);
 
   while (pq.length !== 0) {
-    const {element: [cpath, ccpath]} = pq.dequeue();
+    const [cpath, ccpath] = pq.pop();
     //console.log('trying',ccpath);
 
     if (cpath==design) {
@@ -116,7 +96,7 @@ function pqsolve(design, patterns) {
       //if (design.startsWith(npath)) {
       if (design.indexOf(npath)===0) { // faster
       //if (design.slice(0,npath.length)==npath) { // faster
-        pq.enqueue([npath, ncpath]);
+        pq.push([npath, ncpath]);
         //pqVisited.add(ncpath);
         //console.log(pqVisited);
       }
