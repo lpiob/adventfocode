@@ -31,6 +31,8 @@ console.log('Target reached in ', ret[0], 'picoseconds');
 drawMap(map, ret[1]);
 
 steps=ret[1][0];
+steps = [ Sp, ...steps];
+console.log(steps);
 
 let min_shortcut=100;
 
@@ -43,9 +45,12 @@ for (let i1=0; i1<steps.length-min_shortcut; i1++) {
   for (let i2=i1+min_shortcut; i2<steps.length; i2++) {
     c2=steps[i2];
     let distance=Math.abs(c1[0]-c2[0]) + Math.abs(c1[1]-c2[1]);
-    let saved=i2-i1+distance;
-    if (saved>min_shortcut && distance<20) {
+    if (distance<=20) {
+      let newlen=i1+distance+(steps.length-i2);
+      let saved=ret[0]-newlen+1;
+      //console.log(c1,c2,distance, newlen, saved);
       if (saved>=min_shortcut) {
+
         shaves[saved]=(shaves[saved]||0)+1;
         total_cheats++;
       };
@@ -53,7 +58,7 @@ for (let i1=0; i1<steps.length-min_shortcut; i1++) {
   };
 };
 
-//console.log(shaves);
+console.log(shaves);
 console.log("Total shortcuts that save",min_shortcut,":",total_cheats);
 
 
