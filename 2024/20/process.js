@@ -26,18 +26,58 @@ for (const line of input.split("\n")) {
 drawMap(map);
 console.log(Sp, Ep);
 let ret=solve();
-console.log(ret[0], ret[1]);
-drawMap(map, ret[2]);
+console.log('Target reached in ', ret[0], 'picoseconds');
+//console.log(ret[1]);
+drawMap(map, ret[1]);
+
+steps=ret[1][0];
+
+let min_shortcut=100;
+
+let shaves={};
+let total_cheats=0;
+
+let possible_shortcuts=0;
+for (let i1=0; i1<steps.length-min_shortcut; i1++) {
+  c1=steps[i1];
+  for (let i2=i1+min_shortcut; i2<steps.length; i2++) {
+    c2=steps[i2];
+    let saved=i2-i1-3+1;
+    if (saved>=min_shortcut) {
+      // no diagonals atm
+      if ( (Math.abs(c1[0]-c2[0])==2 && c1[1]==c2[1])
+           ||
+           (Math.abs(c1[1]-c2[1])==2 && c1[0]==c2[0])
+         ) {
+          let my=(c1[0]+c2[0])/2;
+          let mx=(c1[1]+c2[1])/2;
+          if (map[my][mx]=='#') {
+            //console.log(i1,i2,c1,c2, 'saves',saved);
+            shaves[saved]=(shaves[saved]||0)+1;
+            total_cheats++;
+          };
+      };
+    };
+  };
+};
+
+console.log(shaves);
+console.log("Total shortcuts that save",min_shortcut,":",total_cheats);
 
 
 function drawMap(map,bc) {
+  console.log('01234567890123456');
   let map2=structuredClone(map);
-  if (bc) {
+  if (bc && bc instanceof Map) {
     for (let el of bc) {
       let n=el[0].split(',').map(Number);
       map2[n[0]][n[1]]="O";
     };
-  }
+  } else if (bc && bc instanceof Array) {
+    for (let n of bc[0]) {
+      map2[n[0]][n[1]]="O";
+    };
+  };
 
   for (const row of map2) {
     const line=row.join("");
