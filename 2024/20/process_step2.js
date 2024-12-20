@@ -34,12 +34,11 @@ steps=ret[1][0];
 
 let min_shortcut=50;
 
-let shaves={};
-let possible_cheats=new Set();
 let total_cheats=0;
 
 let possible_shortcuts=0;
 for (let i1=0; i1<steps.length-min_shortcut; i1++) {
+  console.log("progress",i1,"/",steps.length-min_shortcut);
   c1=steps[i1];
   for (let i2=i1+min_shortcut; i2<steps.length; i2++) {
     c2=steps[i2];
@@ -47,28 +46,15 @@ for (let i1=0; i1<steps.length-min_shortcut; i1++) {
     if (saved>=min_shortcut) {
       // manhattan distance
       if ( Math.abs(c1[0]-c2[0]) + Math.abs(c1[1]-c2[1]) <20 ) {
-          const key=`${c1[0]}x${c1[1]}-${c2[0]}x${c2[1]}`;
-          if (!possible_cheats.has(key)) {
-            let ret=solve(c1, c2, '.');
-            if (ret[0]<=min_shortcut) {
-              shaves[saved]=(shaves[saved]||0)+1;
-              total_cheats++;
-              possible_cheats.add(key);
-              if (saved==51 && false) {
-                console.log(i1,i2,c1,c2, 'saves',saved);
-                drawMap(map, ret[1]);
-                process.exit(0);
-              };
-            };
-          };
+          let ret=solve(c1, c2, '.');
+          if (ret[0]<=min_shortcut)
+            total_cheats++;
       };
     };
   };
 };
 
-console.log(shaves);
 console.log("Total shortcuts that save",min_shortcut,":",total_cheats);
-console.log(possible_cheats.size);
 
 
 function drawMap(map,bc) {
