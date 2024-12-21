@@ -41,8 +41,6 @@ for (let y1=0; y1<4; y1++) {
   };
 };
 
-console.log(keypad_distance);
-
 let dirpad_distance={};
 for (let y1=0; y1<2; y1++) {
   for (let x1=0; x1<3; x1++) {
@@ -71,6 +69,8 @@ for (let y1=0; y1<2; y1++) {
   };
 };
 
+let sum=0;
+
 for (const code of codes) {
   console.log('About to type',code);
   let keypad_cost=0;
@@ -89,7 +89,6 @@ for (const code of codes) {
     keystack += 'A';
     keypad_cost+=k_cost;
     keypad_key=l;
-
   };
 
   console.log('keystack', keystack);
@@ -99,6 +98,22 @@ for (const code of codes) {
   // wiemy ile razy kazdy klawisz trzeba nacisnąć
   // czy mozemy to przetlumaczyc na ilosc nacisniec dirpad?
   // sprawdzamy po kolei
+
+  let [dirstack, dirpad_cost]=getDirpadKeys(keystack);
+  console.log('dirstack', dirstack);
+  console.log('cost of dirpad presses', dirpad_cost);
+  [dirstack, dirpad_cost]=getDirpadKeys(dirstack);
+  console.log('dirstack', dirstack);
+  console.log('cost of dirpad presses', dirpad_cost);
+
+  let code_number=Number(code.replace(/^0*(\d+)A$/,'$1'));
+  console.log(dirstack.length,code_number);
+  sum+=dirstack.length*code_number;
+};
+
+console.log('sum', sum);
+
+function getDirpadKeys(keystack) {
   let dirpad_cost=0;
   let dirpad_key='A';
   let dirstack='';
@@ -107,7 +122,7 @@ for (const code of codes) {
     let k_cost=k.dist;
     if (k_cost === undefined)
       throw new Error(`Distance for pad ${dirpad_key}-${l} unknown`);
-    console.log(l, `${dirpad_key}-${l}`, k_cost, k);
+    //console.log(l, `${dirpad_key}-${l}`, k_cost, k);
     dirstack += '^'.repeat(k.up);
     dirstack += '<'.repeat(k.left);
     dirstack += '>'.repeat(k.right);
@@ -116,10 +131,5 @@ for (const code of codes) {
     dirpad_cost+=k_cost;
     dirpad_key=l;
   };
-
-  console.log('dirstack', dirstack);
-  console.log('cost of dirpad presses', dirpad_cost);
-  process.exit(0);
+  return [dirstack, dirpad_cost];
 };
-
-
