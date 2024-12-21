@@ -41,6 +41,11 @@ for (let y1=0; y1<4; y1++) {
   };
 };
 
+// magic overrides for 'blank' place on keypad
+keypad_distance["A-1"].keys="^<<";
+keypad_distance["A-4"].keys="^^<<";
+keypad_distance["A-7"].keys="^^^<<";
+
 let dirpad_distance={};
 for (let y1=0; y1<2; y1++) {
   for (let x1=0; x1<3; x1++) {
@@ -80,11 +85,15 @@ for (const code of codes) {
     let k_cost=k.dist;
     if (k_cost === undefined)
       throw new Error(`Distance for key ${keypad_key}-${l} unknown`);
-    console.log(l, `${keypad_key}-${l}`, k_cost, k);
-    keystack += '<'.repeat(k.left);
-    keystack += '^'.repeat(k.up);
-    keystack += '>'.repeat(k.right);
-    keystack += 'v'.repeat(k.down);
+    //console.log(l, `${keypad_key}-${l}`, k_cost, k);
+    if (k.keys) {
+      keystack += k.keys
+    } else {
+      keystack += '<'.repeat(k.left);
+      keystack += '^'.repeat(k.up);
+      keystack += 'v'.repeat(k.down);
+      keystack += '>'.repeat(k.right);
+    };
     keystack += 'A';
     keypad_cost+=k_cost;
     keypad_key=l;
@@ -101,6 +110,7 @@ for (const code of codes) {
   let [dirstack, dirpad_cost]=getDirpadKeys(keystack);
   console.log('dirstack', dirstack);
   console.log('cost of dirpad presses', dirpad_cost);
+
   [dirstack, dirpad_cost]=getDirpadKeys(dirstack);
   console.log('dirstack', dirstack);
   console.log('cost of dirpad presses', dirpad_cost);
@@ -111,6 +121,7 @@ for (const code of codes) {
 };
 
 console.log('sum', sum);
+console.log(keypad_distance["A-4"])
 
 function getDirpadKeys(keystack) {
   let dirpad_cost=0;
@@ -122,10 +133,10 @@ function getDirpadKeys(keystack) {
     if (k_cost === undefined)
       throw new Error(`Distance for pad ${dirpad_key}-${l} unknown`);
     //console.log(l, `${dirpad_key}-${l}`, k_cost, k);
-    dirstack += '>'.repeat(k.right);
-    dirstack += 'v'.repeat(k.down);
     dirstack += '<'.repeat(k.left);
     dirstack += '^'.repeat(k.up);
+    dirstack += 'v'.repeat(k.down);
+    dirstack += '>'.repeat(k.right);
     dirstack += 'A';
     dirpad_cost+=k_cost;
     dirpad_key=l;
