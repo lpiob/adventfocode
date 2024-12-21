@@ -65,7 +65,6 @@ for (let y1=0; y1<2; y1++) {
 
       }
     };
-
   };
 };
 
@@ -82,8 +81,8 @@ for (const code of codes) {
     if (k_cost === undefined)
       throw new Error(`Distance for key ${keypad_key}-${l} unknown`);
     console.log(l, `${keypad_key}-${l}`, k_cost, k);
-    keystack += '^'.repeat(k.up);
     keystack += '<'.repeat(k.left);
+    keystack += '^'.repeat(k.up);
     keystack += '>'.repeat(k.right);
     keystack += 'v'.repeat(k.down);
     keystack += 'A';
@@ -123,10 +122,10 @@ function getDirpadKeys(keystack) {
     if (k_cost === undefined)
       throw new Error(`Distance for pad ${dirpad_key}-${l} unknown`);
     //console.log(l, `${dirpad_key}-${l}`, k_cost, k);
-    dirstack += '^'.repeat(k.up);
-    dirstack += '<'.repeat(k.left);
     dirstack += '>'.repeat(k.right);
     dirstack += 'v'.repeat(k.down);
+    dirstack += '<'.repeat(k.left);
+    dirstack += '^'.repeat(k.up);
     dirstack += 'A';
     dirpad_cost+=k_cost;
     dirpad_key=l;
