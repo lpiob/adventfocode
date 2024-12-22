@@ -1,6 +1,9 @@
+/* be careful, there are spots of blood and sweat in this code */
+
 const input = require('fs').readFileSync(0).toString().trim(); 
 
 const codes=input.split("\n");
+var cache=new Map();
 
 const keypad=[
   [..."789"],
@@ -70,7 +73,6 @@ for (let y1=0; y1<2; y1++) {
           left: left_presses,
           right: right_presses
         };
-
       }
     };
   };
@@ -83,8 +85,9 @@ dirpad_distance['<->'].keys=">>";
 
 dirpad_distance['v-<'].keys="<";
 dirpad_distance['v->'].keys=">";
-dirpad_distance['v-A'].keys=">^";
+dirpad_distance['v-A'].keys="^>";
 dirpad_distance['v-v'].keys="";
+dirpad_distance['v-^'].keys="^";
 
 dirpad_distance['A-v'].keys="<v";
 dirpad_distance['A-^'].keys="<";
@@ -96,13 +99,10 @@ dirpad_distance['>-^'].keys="<^";
 dirpad_distance['>-v'].keys="<";
 dirpad_distance['>-<'].keys="<<";
 
-dirpad_distance['^->'].keys=">v";
+dirpad_distance['^->'].keys="v>";
 dirpad_distance['^-A'].keys=">";
 dirpad_distance['^-<'].keys="v<";
 dirpad_distance['^-v'].keys="v";
-
-//console.log(getDirpadCost('A', '<', 25));
-//process.exit(0);
 
 let sum2=0;
 let sum25=0;
@@ -135,92 +135,46 @@ for (const code of codes) {
   console.log('keystack', keystack);
   console.log('cost of keypad presses:', keypad_cost);
 
-  for (let i=0; i<25;i++) {
-    dirpadpositions[i]='A';
-  };
-
   // convert keystack to dirstack
-  let sum_cost=0;
-  const n=2;
-  for (const c of keystack) {
-    console.log(c);
-    let cost=getDirpadCost(dirpadpositions[n], c, n);
-    sum_cost+=cost
-  };
+  let cost2=getDirpadCost(keystack, 2);
+  let cost25=getDirpadCost(keystack, 25);
   let code_number=Number(code.replace(/^0*(\d+)A$/,'$1'));
-  console.log(code,'=',sum_cost,'*',code_number);
-  sum2+=sum_cost*code_number;
+  sum2+=cost2*code_number;
+  sum25+=cost25*code_number;
 };
 
 console.log('sum2', sum2);
+console.log('sum25', sum25);
 
-let cache=new Map();
+function getPadKeys(from, to) {
+  if (from==to) return 'A';
+  const padkey=`${from}-${to}`;
 
-function getDirpadCost(from,to,n) {
-  let cost=0;
-  let keys='';
-  let k=dirpad_distance[`${from}-${to}`];
-  console.log(`${from}-${to}-${n}`);
-  //
+  console.log(`getPadKeys`,padkey,':', dirpad_distance[padkey].keys);
+  return dirpad_distance[padkey].keys+'A';
+};
 
-  if (k.keys && n>0) {
-    keys+=k.keys;
-    for (const c of k.keys) {
-      //console.log("subcheck",c,n-1);
-      const subcost=getDirpadCost(dirpadpositions[n-1], c, n-1);
-      cost+=subcost;
-    };
-  } else if (from==to && n>0) {
-    //keys+='A';
-    //const subcost=getDirpadCost(dirpadpositions[n], 'A', n-1);
-    //cost+=subcost;
+function getDirpadCost(pad,n,s=0) {
+  const cachekey=`${pad}-${n}-${s}`;
+  if (cache.has(cachekey)) {
+    return cache.get(cachekey);
   };
 
-  if (n>0) {
-    keys += 'A';
-    const subcost=getDirpadCost(dirpadpositions[n-1], 'A', n-1);
-    cost+=subcost;
+  if (n==0) return pad.length;
+  for (let i=0; i<pad.length; i++) {
+    const keyfrom=i>0 ? pad[i-1] : 'A';
+    const keyto=pad[i]
+    let subkeys='';
+    if (keyfrom!=keyto) {
+      subkeys=dirpad_distance[`${keyfrom}-${keyto}`].keys;
+    }
+    subkeys+='A';
+    s += getDirpadCost( subkeys, n-1 );
   };
-  
 
-  //if (n==0)
-  //console.log("k",n,keys);
-  
-  if (n==0) {
-    //console.log('n0 keys to press', to, '=', keys);
-    //console.log('local cost', k.dist+1);
-    cost+=k.dist;
-    dirpadpositions[n]=to;
-    return cost;
-  };
-  dirpadpositions[n]=to;
-  cost+=keys.length;
-  return cost;
+  cache.set(cachekey, s);
+
+  return s;
 
 };
 
-function getDirpadKeys(keystack) {
-  console.log('analyzing for',keystack);
-  let dirpad_cost=0;
-  let dirpad_key='A';
-  let dirstack={};
-    for (const l in keystack) {
-      const times=keystack[l];
-      console.log('  checking key ',l, 'which was pressed',times,'times');
-
-      let k=dirpad_distance[`${dirpad_key}-${l}`];
-      let k_cost=k.dist;
-      if (k_cost === undefined)
-        throw new Error(`Distance for pad ${dirpad_key}-${l} unknown`);
-
-      dirstack['<'] = times * ((dirstack['<']||0) + k.left)
-      dirstack['^'] = times * ((dirstack['^']||0) + k.up);
-      dirstack['v'] = times * ((dirstack['v']||0) + k.down);
-      dirstack['>'] = times * ((dirstack['>']||0) + k.right);
-      dirstack['A'] = times * ((dirstack['A']||0) + 1);
-      dirpad_cost+=k_cost;
-      dirpad_key=l;
-    };
-  console.log('returning', dirstack);
-  return [dirstack, dirpad_cost];
-};
