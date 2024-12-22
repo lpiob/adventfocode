@@ -1,10 +1,10 @@
 const input = require('fs').readFileSync(0).toString().trim(); 
 
-let allsequences={};
+let changeseq=[];
 
 let sum=0;
 for (let secret of input.split("\n")) {
-  //secret=123;
+  changeseq[secret]={};
   let n=secret;
   let changes=[n%10]
   for (let i=0;i<2000;i++) {
@@ -22,25 +22,32 @@ for (let secret of input.split("\n")) {
     //console.log(i,n,digit, changes, diffs);
     if (diffs.length>=4) {
       const diffkey=diffs.join(",")
-      if (!allsequences[diffkey]) {
-        console.log("Selling at",diffkey,"would yield",digit,"bananas")
-        allsequences[diffkey]=(allsequences[diffkey]||0)+digit;
+      if (!changeseq[secret][diffkey]) {
+        //console.log("Selling at",diffkey,"would yield",digit,"bananas")
+        changeseq[secret][diffkey]=digit;
       };
     };
-
-
   };
-  console.log(secret, n);
+  //console.log(secret, n);
   sum+=n;
-
 };
-console.log(allsequences);
+
+// merge secret sequences
+let allsequences={};
+for (let secret of input.split("\n")) {
+  for (const diff in changeseq[secret]) {
+    allsequences[diff] = (allsequences[diff]||0) + changeseq[secret][diff];
+  };
+};
+
+//console.log(allsequences);
 console.log("sum", sum);
 const bestdiff = Object.keys(allsequences).reduce((maxKey, currentKey) => 
     allsequences[maxKey] >= allsequences[currentKey] ? maxKey : currentKey
 );
 
 console.log("best change sequence", bestdiff);
+console.log("best possible score", allsequences[bestdiff]);
 
 
 function calculateNextSecret(n) {
