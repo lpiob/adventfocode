@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const input = require('fs').readFileSync(0).toString().trim(); 
 
 const registers={};
@@ -47,28 +49,58 @@ function simulateGates(gates, registers) {
 };
 
 
+let grfr={}; // gates resposible for registers
+// validation
+for (const g of gates) {
+  if (g.o.startsWith('z')) {
+    //console.log(regname);
+    grfr[g.o]=getAffectingGates(g.o, gates);
+    console.log(g.o,"is affected by",grfr[g.o].size,"gates");
+    let str="digraph logic_gates { rankdir=LR; node [shape=circle]; ";
+    for (const gidx of grfr[g.o]) {
+      console.log(gates[gidx]);
+      const e=gates[gidx];
+      str+=`{${e.i1},${e.i2}} -> ${e.o} [label=${e.op}]\n`;
+
+    };
+    str+='}';
+    fs.writeFileSync(`graphs/${g.o}.dot`, str, 'utf8');
+  };
+};
 
 // manual mutations
 let p2;
-//p2=[ 179, 69 ]
-//console.log(gates[p2[0]], gates[p2[1]]);
-//switchOutputs( gates[p2[0]], gates[p2[1]]);
-
-//p2=[ 74, 97 ] // magic
-//switchOutputs( gates[p2[0]], gates[p2[1]]);
+p2=[ 53, 152 ] // z15, fph
+switchOutputs( gates[p2[0]], gates[p2[1]]);
+p2=[ 85, 17 ] // z21, gds
+switchOutputs( gates[p2[0]], gates[p2[1]]);
+p2=[ 153, 192 ] // z34, cqk
+switchOutputs( gates[p2[0]], gates[p2[1]]);
+p2=[ 67, 48 ] // z30, hpt
+switchOutputs( gates[p2[0]], gates[p2[1]]);
+// cqk,fph,gds,hpt,z15,z21,z30,z34
 
 for (let i=0;i<gates.length;i++) {
   const g=gates[i];
-  if (g.o=='z03' || g.o=='z04') {
+  if (g.o=='z30' || g.o=='hpt' || g.o=='dwm') {
     console.log(i, g);
   };
 };
+
+
+let answer='';
+let swaps=[];
+for (const i of [53, 152, 85, 17, 153,192, 67, 48]) {
+  console.log(i);
+  swaps.push(gates[i].o);
+};
+swaps.sort();
+console.log("answer:", swaps.join(","));
 
 //
 //
 
 var lsb=Infinity;
-let grfr={}; // gates resposible for registers
 
 let r={...registers};
 
@@ -87,7 +119,7 @@ let Bd=(Rd^Id)
 let Bb=Bd.toString(2);
 const bits=findSetBits(Bd);
 console.log('B',Bb.padStart(46,'0'), Bd, bits.length, bits.join(','))
-
+process.exit(0);
 const affectingGates=[];
 for (const bit of findSetBits(Bd)) {
   const regname='z'+bit.toString().padStart(2,'0');
@@ -107,7 +139,7 @@ let pairs=generateCombinations([...gatesToMutate], 2);
 console.log('Pairs to mutate', pairs.length);
 
 /// let's start mutating ONE by one
-
+process.exit(0);
 let i=0;
 let ll=lsb;
 for (const p of pairs) {
