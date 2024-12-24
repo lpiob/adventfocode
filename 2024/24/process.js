@@ -23,12 +23,12 @@ let last_length=Infinity;
 
 while (gates.length>0 && last_length!=gates.length) {
   last_length=gates.length
-  console.log("gates to process", gates.length);
-  console.log("registers", registers);
+  //console.log("gates to process", gates.length);
+  //console.log("registers", registers);
   for (let i=gates.length-1;i>=0;i--) {
     const g=gates[i]
     if (registers[g.i1]>=0 && registers[g.i2]>=0) {
-      console.log('performing', g);
+      //console.log('performing', g);
       if (g.op=='XOR') {
         registers[g.o]=registers[g.i1] ^ registers[g.i2];
       } else if (g.op=='AND') {
@@ -38,22 +38,30 @@ while (gates.length>0 && last_length!=gates.length) {
       };
       gates.splice(i, 1);
     } else {
-      console.log('skipping', g, 'because', registers[g.i1]>=0, registers[g.i2]>=0);
+      //console.log('skipping', g, 'because', registers[g.i1]>=0, registers[g.i2]>=0);
     };
   };
 };
-console.log('gates left', gates.length);
-console.log(gates);
 
-let rn=Object.keys(registers).sort();
+x=getBitValue(registers, 'x');
+y=getBitValue(registers, 'y');
+getBitValue(registers, 'z');
+// ideal value
+Id=x+y;
+Ib=Id.toString(2);
+console.log('I',Ib.padStart(46,'0'), Id)
 
-let bits=[];
-for (let r of rn) {
-  if (r.startsWith('z')) bits.push(registers[r]);
-  console.log(r,registers[r]);
+
+function getBitValue(registers, type) {
+  let rn=Object.keys(registers).sort();
+  let bits=[];
+  for (let r of rn) {
+    if (r.startsWith(type)) bits.push(registers[r]);
+  };
+  bits = bits.reverse();
+
+  const decimal = parseInt(bits.join(''), 2);
+
+  console.log(type, bits.join('').padStart(46,'0'), decimal);
+  return decimal;
 };
-bits = bits.reverse();
-
-const decimal = parseInt(bits.join(''), 2);
-
-console.log(bits.join(''), decimal);
