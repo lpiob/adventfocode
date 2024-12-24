@@ -46,13 +46,75 @@ function simulateGates(gates, registers) {
   return registers;
 };
 
-let lsb=Infinity;
-let gatesToMutate=new Set();
+
+
+// manual mutations
+let p2;
+//p2=[ 179, 69 ]
+//console.log(gates[p2[0]], gates[p2[1]]);
+//switchOutputs( gates[p2[0]], gates[p2[1]]);
+
+//p2=[ 74, 97 ] // magic
+//switchOutputs( gates[p2[0]], gates[p2[1]]);
+
+for (let i=0;i<gates.length;i++) {
+  const g=gates[i];
+  if (g.o=='z03' || g.o=='z04') {
+    console.log(i, g);
+  };
+};
+
+//
+//
+
+var lsb=Infinity;
+let grfr={}; // gates resposible for registers
+
+let r={...registers};
+
+simulateGates(gates, r);
+
+let Rx=getBitValue(registers, 'x');
+let Ry=getBitValue(registers, 'y');
+let Rd=BigInt(getBitValue(r, 'z'));
+// ideal value
+Id=BigInt(Rx+Ry);
+Ib=Id.toString(2);
+console.log('I',Ib.padStart(46,'0'), Id)
+
+// badbits
+let Bd=(Rd^Id)
+let Bb=Bd.toString(2);
+const bits=findSetBits(Bd);
+console.log('B',Bb.padStart(46,'0'), Bd, bits.length, bits.join(','))
+
+const affectingGates=[];
+for (const bit of findSetBits(Bd)) {
+  const regname='z'+bit.toString().padStart(2,'0');
+
+  //console.log(regname);
+  grfr[regname]=getAffectingGates(regname, gates);
+  console.log(regname,"is affected by",grfr[regname].size,"gates");
+  affectingGates.push(grfr[regname]);
+};
+
+const gatesToMutate = [...affectingGates[0]].filter(num => 
+    affectingGates.every(set => set.has(num))
+);
+
+
+let pairs=generateCombinations([...gatesToMutate], 2);
+console.log('Pairs to mutate', pairs.length);
+
+/// let's start mutating ONE by one
+
 let i=0;
-while (lsb>0) {
-//for (let i=0;i<4;i++) {
-  console.log('sim',i, 'mutations', gatesToMutate.size);
-  let g=[...gates];
+let ll=lsb;
+for (const p of pairs) {
+  const lastlsb=ll;
+  console.log("Mutating pair",p);
+  let g=structuredClone(gates);
+  switchOutputs(g[p[0]], g[p[1]]);
   let r={...registers};
 
   simulateGates(g, r);
@@ -61,33 +123,47 @@ while (lsb>0) {
   let Ry=getBitValue(registers, 'y');
   let Rd=getBitValue(r, 'z');
   // ideal value
-  Id=Rx+Ry;
+  Id=BigInt(Rx+Ry);
   Ib=Id.toString(2);
   console.log('I',Ib.padStart(46,'0'), Id)
 
   // badbits
-  let Bd=Id-Rd
+  let Bd=Rd-Id
   let Bb=Bd.toString(2);
-  console.log('B',Bb.padStart(46,'0'), Bd)
-  let lsb=(Bd & -Bd)
-  console.log('L',lsb.toString(2).padStart(46,'0'), lsb)
-
-
-  if (lsb>0) {
-    let bitpos=Math.log2(lsb & -lsb);
-    badregister='z'+ bitpos.toString().padStart(2,'0');
-    console.log('bad register at', badregister, '=', r[badregister]);
-
-    if (i==0) {
-      const gatestocheck=getAffectingGates(badregister, g);
-
-      for (let c of gatestocheck)
-        gatesToMutate.add(c);
-    }
-  };
+  const bits=findSetBits(Bd);
+  console.log('B',Bb.padStart(46,'0'), Bd, p, bits.join(','))
   i++;
-  if (i>5) process.exit(0);
+  if (lsb>lastlsb) process.exit(0);
 };
+
+
+
+/*
+lsb=(Bd & -Bd)
+console.log('L',lsb.toString(2).padStart(46,'0'), lsb)
+
+
+if (lsb>0) {
+  let bitpos=Math.log2(lsb & -lsb);
+  badregister='z'+ bitpos.toString().padStart(2,'0');
+  console.log('bad register at', badregister, '=', r[badregister]);
+
+  const gatestocheck=getAffectingGates(badregister, gates);
+    for (let c of gatestocheck)
+      gatesToMutate.add(c);
+};
+*/
+
+process.exit(0);
+
+// attempt mutations
+console.log('gatesToMutate', gatesToMutate.size);
+//let pairs=generateCombinations([...gatesToMutate], 2);
+console.log(pairs.length);
+function switchOutputs(g1, g2) {
+  [g1.o, g2.o] = [g2.o, g1.o]
+};
+
 
 
 function getBitValue(registers, type) {
@@ -123,3 +199,40 @@ function getAffectingGates(reg, gates){
   };
   return susgate;
 };
+
+function generateCombinations(arr, k) {
+  const result = [];
+  
+  function combine(start, combo) {
+    if (combo.length === k) {
+      result.push([...combo]);
+      return;
+    }
+    
+    for (let i = start; i < arr.length; i++) {
+      combo.push(arr[i]);
+      combine(i + 1, combo);
+      combo.pop();
+    }
+  }
+  
+  combine(0, []);
+  return result;
+}
+function findSetBits(n) {
+  const positions = [];
+  let position = 0;
+
+  while (n > BigInt(0)) {
+    // If least significant bit is 1, add its position
+    if (n & BigInt(1)) {
+      positions.push(position);
+    }
+    // Right shift to check next bit
+    n >>= BigInt(1);
+    position++;
+  }
+  
+  return positions;
+}
+
