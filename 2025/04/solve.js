@@ -22,23 +22,30 @@ function countNeighbors(maze, y, x, char) {
         if (maze[y+dy][x+dx]===char) count++;
       }
     }
-  console.log(`Total neighbors for (${x},${y}) is ${count}`);
+  //console.log(`Total neighbors for (${x},${y}) is ${count}`);
   return count;
 }
 
-const mazecopy=JSON.parse(JSON.stringify(maze));
+let mazecopy=JSON.parse(JSON.stringify(maze));
 
-
-console.log(countNeighbors(maze, 1, 2, '@'));
-for (let y=0;y<maze.length;y++) {
-  for (let x=0;x<maze[y].length;x++) {
-    if (maze[y][x]=='@' && countNeighbors(maze, y, x, '@')<4) {
-      p1++;
-      mazecopy[y][x]='x';
+let removed=0;
+let iteration=0;
+do {
+  removed=0;
+  for (let y=0;y<maze.length;y++) {
+    for (let x=0;x<maze[y].length;x++) {
+      if (mazecopy[y][x]=='@' && countNeighbors(mazecopy, y, x, '@')<4) {
+        removed++;
+        mazecopy[y][x]='x';
+      }
     }
   }
-}
-console.log(mazecopy);
+  //console.log(mazecopy);
+  p2+=removed;
+  if (iteration==0) p1=removed;
+  iteration++;
+  console.log(iteration, 'removed this round:', removed);
+} while (removed>0);
 
 console.log("Part 1:", p1);
 console.log("Part 2:", p2);
