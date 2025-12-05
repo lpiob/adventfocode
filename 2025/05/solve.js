@@ -25,6 +25,30 @@ for (const product of available_products) {
   }
 }
 
-
 console.log("Part 1:", p1);
+
+// Part 2
+// merge overlapping ranges
+
+const merged_ranges = [];
+fresh_ranges.sort((a,b)=>a.from-b.from);
+for (const range of fresh_ranges) {
+  if (merged_ranges.length===0) {
+    merged_ranges.push(range);
+  } else {
+    const last_range = merged_ranges[merged_ranges.length-1];
+    if (range.from <= last_range.to+1) {
+      // overlap
+      last_range.to = Math.max(last_range.to, range.to);
+    } else {
+      merged_ranges.push(range);
+    }
+  }
+}
+
+for (const range of merged_ranges) {
+  var diff=range.to-range.from+1;
+  p2+=diff;
+}
+
 console.log("Part 2:", p2);
