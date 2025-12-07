@@ -10,41 +10,50 @@ for (const lines of input.split('\n')) {
 
 let sy=0;
 let sx=map[0].indexOf('S');
+// first beam
+map[sy+1][sx]='|';
 
 let splits=0;
+let splits_by_row=[];
+let active_splitters=0;
 
-function tachyonBeam(map, y, x) {
-  map[y][x]='|'; // mark beam path
-  y=y+1; // tachbyon beam always travels downwards
-  if (y>=map.length) return 0; // out of bounds
-  if (map[y][x]==='^') { // divide
-    // left beam
-    var left=0;
-    if (x>0 && map[y][x-1]!=='|') { 
+for (let y=0;y<map.length;y++) {
+  if (!splits_by_row[y]) splits_by_row[y]=0;
+  for (let x=0;x<map[0].length;x++) {
+    if (map[y][x]==='.') {
+      if (y>0 && map[y-1][x]==='|') {
+        map[y][x]='|';
+      }
+    } else if (map[y][x]==='^') {
+      console.log('splitter at ', y,x);
 
-      left=tachyonBeam(map, y, x-1);
-    }
-
-    // right beam
-    var right=0;
-    if (x<map[0].length-1 && map[y][x+1]!=='|') right=tachyonBeam(map, y, x+1);
-
-    splits=splits+1;
-    console.log("at split",splits, y,x, "we return",1+left+right);
-
-    return 1+left+right;
-  } else {
-    return tachyonBeam(map, y, x);
+      if (map[y-1][x]==='|') {
+        active_splitters++;
+        // left beam
+        if (x-1 >= 0 && map[y][x-1]==='.') {
+          map[y][x-1]='|';
+          p1++;
+          splits_by_row[y]++;
+        }
+        // right beam
+        if (x+1 < map[0].length && map[y][x+1]==='.') {
+          map[y][x+1]='|';
+          p1++;
+          splits_by_row[y]++;
+        }
+      } else {
+        console.log('This splitter is inactive!');
+      }
+    };
   }
-
 }
-console.log(tachyonBeam(map, sy, sx));
+
+let y=0;
 for (const line of map) {
-  console.log(line.join(''));
+  console.log(line.join(''), splits_by_row[y]);
+  y++;
 }
-p1 = splits;
+console.log('active splitters:', active_splitters);
 
-
-
-console.log("Part 1:", p1);
+console.log("Part 1:", active_splitters);
 console.log("Part 2:", p2);
