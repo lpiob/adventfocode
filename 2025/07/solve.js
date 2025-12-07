@@ -40,7 +40,11 @@ function tachyonBeam(map, y, x) {
 }
 console.log(tachyonBeam(map, sy, sx));
 for (const line of map) {
-  console.log(line.join(''));
+  if (line.includes('^')) {
+    p2+=line.join('').match(/\|/g).length;
+    //p2+=line.join('').match(/\|\^/g).length;
+  };
+  console.log(line.join(''),p2);
 }
 p1 = splits;
 
