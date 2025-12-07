@@ -13,36 +13,43 @@ let sx=map[0].indexOf('S');
 
 let splits=0;
 
-function tachyonBeam(map, y, x) {
+let paths=new Map();
+
+function tachyonBeam(map, y, x, path) {
+  //console.log(`Beam at ${y},${x}`);
   map[y][x]='|'; // mark beam path
   y=y+1; // tachbyon beam always travels downwards
-  if (y>=map.length) return 0; // out of bounds
+  path=path+'d';
+
+  if (y>=map.length) {
+    paths.set(path, true);
+    return 1;
+  }
   if (map[y][x]==='^') { // divide
     // left beam
     var left=0;
-    if (x>0 && map[y][x-1]!=='|') { 
+    if (x>0) { 
 
-      left=tachyonBeam(map, y, x-1);
+      left=tachyonBeam(map, y, x-1, path+'l');
     }
 
     // right beam
     var right=0;
-    if (x<map[0].length-1 && map[y][x+1]!=='|') right=tachyonBeam(map, y, x+1);
+    if (x<map[0].length-1) {
+      right=tachyonBeam(map, y, x+1, path+'r');
+    }
 
-    splits=splits+1;
-    console.log("at split",splits, y,x, "we return",1+left+right);
-
-    return 1+left+right;
+    return 2;
   } else {
-    return tachyonBeam(map, y, x);
+    return tachyonBeam(map, y, x, path);
   }
 
 }
-console.log(tachyonBeam(map, sy, sx));
+console.log(tachyonBeam(map, sy, sx,''));
+p2=paths.size;
 for (const line of map) {
   console.log(line.join(''));
 }
-p1 = splits;
 
 
 
