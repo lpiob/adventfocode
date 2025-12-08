@@ -26,13 +26,13 @@ for (let i=0; i<jbs.length; i++) {
 }
 pairs.sort((a,b) => a.dist - b.dist);
 
-console.log("All pairs sorted by distance:");
+console.log("All pairs sorted by distance");
 
 let dfu_parent = Array(jbs.length).fill(0).map((_, idx) => idx);
 let dfu_size = Array(jbs.length).fill(1);
 
-console.log('parents', dfu_parent);
-console.log('sizes', dfu_size);
+//console.log('parents', dfu_parent);
+//console.log('sizes', dfu_size);
 
 function dfu_find(x) {
   if (dfu_parent[x] !== x)
@@ -41,28 +41,40 @@ function dfu_find(x) {
   return dfu_parent[x];
 }
 
-for (let i=0; i<1000; i++) {
+for (let i=0; i<Infinity; i++) {
+  if (i==1000) {
+    // top 3 sizes
+    const rootSizes = dfu_size.filter((size, idx) => dfu_parent[idx] === idx);
+    console.log('Top 3 sizes:', rootSizes.sort((a,b) => b - a).slice(0,3));
+
+    // multiply the above
+    p1 = rootSizes.sort((a,b) => b - a).slice(0,3).reduce((a,b) => a*b, 1);
+    console.log("Part 1:", p1);
+  };
   const pair=pairs.shift();
   if (!pair) break;
 //  console.log(`Processing pair with distance ${pair.dist.toFixed(2)} between JB1: ${pair.jb1.pos} and JB2: ${pair.jb2.pos}`);
   //
   const root1 = dfu_find(pair.jb1.idx);
   const root2 = dfu_find(pair.jb2.idx);
+  //console.log(i, 'connecting', pair.jb1, pair.jb2);
+  //console.log('parents', dfu_parent);
+
+
 
   if (root1 === root2) continue;
 
   dfu_parent[root2] = root1;
   dfu_size[root1] += dfu_size[root2];  
+
+  if (dfu_size[root1] === jbs.length) {    
+    console.log('Finished at iteration', i+1);
+    console.log('pairs', pair.jb1, pair.jb2);
+    p2=pair.jb1.pos[0]*pair.jb2.pos[0];
+    break;
+  };
+
+
 };
-console.log('parents', dfu_parent);
-console.log('sizes', dfu_size);
 
-// top 3 sizes
-const rootSizes = dfu_size.filter((size, idx) => dfu_parent[idx] === idx);
-console.log('Top 3 sizes:', rootSizes.sort((a,b) => b - a).slice(0,3));
-
-// multiply the above
-p1 = rootSizes.sort((a,b) => b - a).slice(0,3).reduce((a,b) => a*b, 1);
-
-console.log("Part 1:", p1);
 console.log("Part 2:", p2);
